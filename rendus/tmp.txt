@@ -1,1 +1,10 @@
-A supprimer puis remplacer par "rapport1.pdf"
+P1 :
+La sortie raisonnablement attendue : "abcd\n"
+
+P2 :
+C’est une erreur que de chercher à lire un caractère avant d’être averti qu’un caractère est dispo-
+nible, ou de chercher à écrire avant d’être averti que l’écriture précédente est terminée
+car on peut se retrouver à chercher à lire un caractère qui n'existe pas.
+Si tu lis dans le vide, ça pose problème.
+Si tu écris avant d'avoir fini l'écriture précédente ça va écraser ladite écriture précédente.
+
