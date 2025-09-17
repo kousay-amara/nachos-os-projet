@@ -20,31 +20,30 @@
 //      memory, and jump to it.
 //----------------------------------------------------------------------
 
-void
-StartProcess (char *filename)
+void StartProcess(char *filename)
 {
-    OpenFile *executable = fileSystem->Open (filename);
+    OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
 
     if (executable == NULL)
-      {
-          SetColor (stdout, ColorRed);
-          SetBold (stdout);
-          printf ("Unable to open file %s\n", filename);
-          ClearColor (stdout);
-          return;
-      }
-    space = new AddrSpace (executable);
+    {
+        SetColor(stdout, ColorRed);
+        SetBold(stdout);
+        printf("Unable to open file %s\n", filename);
+        ClearColor(stdout);
+        return;
+    }
+    space = new AddrSpace(executable);
     currentThread->space = space;
 
-    delete executable;		// close file
+    delete executable; // close file
 
-    space->InitRegisters ();	// set the initial register values
-    space->RestoreState ();	// load page table register
+    space->InitRegisters(); // set the initial register values
+    space->RestoreState();  // load page table register
 
-    machine->DumpMem ("memory.svg");
-    machine->Run ();		// jump to the user progam
-    ASSERT_MSG (FALSE, "Machine->Run returned???\n");	// machine->Run never returns;
+    machine->DumpMem("memory.svg");
+    machine->Run();                                  // jump to the user progam
+    ASSERT_MSG(FALSE, "Machine->Run returned???\n"); // machine->Run never returns;
     // the address space exits
     // by doing the syscall "exit"
 }
@@ -62,16 +61,16 @@ static Semaphore *writeDone;
 //----------------------------------------------------------------------
 
 static void
-ReadAvailHandler (void *arg)
+ReadAvailHandler(void *arg)
 {
-    (void) arg;
-    readAvail->V ();
+    (void)arg;
+    readAvail->V();
 }
 static void
-WriteDoneHandler (void *arg)
+WriteDoneHandler(void *arg)
 {
-    (void) arg;
-    writeDone->V ();
+    (void)arg;
+    writeDone->V();
 }
 
 //----------------------------------------------------------------------
@@ -80,28 +79,41 @@ WriteDoneHandler (void *arg)
 //      the output.  Stop when the user types a 'q'.
 //----------------------------------------------------------------------
 
-void
-ConsoleTest (const char *in, const char *out)
+void ConsoleTest(const char *in, const char *out)
 {
     char ch;
 
-    readAvail = new Semaphore ("read avail", 0);
-    writeDone = new Semaphore ("write done", 0);
-    console = new Console (in, out, ReadAvailHandler, WriteDoneHandler, NULL);
+    readAvail = new Semaphore("read avail", 0);
+    writeDone = new Semaphore("write done", 0);
+    console = new Console(in, out, ReadAvailHandler, WriteDoneHandler, NULL);
 
     for (;;)
-      {
-          readAvail->P ();        // wait for character to arrive
-          ch = console->RX ();
+    {
+        readAvail->P(); // wait for character to arrive
+        ch = console->RX();
+#ifdef CHANGED
+        if (ch != EOF && ch != '\n')
+        {
+            console->TX('<');
+            writeDone->P();  // wait for write to finish
+            console->TX(ch); // echo it!
+            writeDone->P();  // wait for write to finish
+            console->TX('>');
+            writeDone->P(); // wait for write to finish
+        }
+        if (ch == '\n')
+        {
+            console->TX('\n');
+            writeDone->P(); // wait for write to finish
+        }
 
-          console->TX (ch);        // echo it!
-          writeDone->P ();        // wait for write to finish
-
-          if (ch == 'q') {
-              printf ("Nothing more, bye!\n");
-              break;                // if q, quit
-          }
-      }
+        if (ch == 'q' || ch == EOF)
+        {
+            printf("\n<<Au revoir>>\n");
+#endif             // CHANGED
+            break; // if q, quit
+        }
+    }
     delete console;
     delete readAvail;
     delete writeDone;
