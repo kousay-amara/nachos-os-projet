@@ -48,7 +48,11 @@ int ConsoleDriver::GetChar()
 
 void ConsoleDriver::PutString(const char *s)
 {
-    // ...
+    while (*(s) != '\0')
+    {
+        console->TX(*(s++));
+        writeDone->P();
+    }
 }
 
 void ConsoleDriver::GetString(char *s, int n)

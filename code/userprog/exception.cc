@@ -84,7 +84,7 @@ void ExceptionHandler(ExceptionType which)
     case SC_PutChar:
     {
       DEBUG('s', "PutChar\n");
-      interrupt->Powerdown();
+      consoledriver->PutChar(machine->ReadRegister(4));
       break;
     }
 #endif // CHANGED
