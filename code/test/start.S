@@ -158,6 +158,15 @@ Yield:
         j        $31
         .end   Yield
 
+/* CHANGED */
+       .globl PutChar
+        .ent   PutChar
+PutChar:
+        addiu $2,$0,SC_PutChar
+        syscall
+        j        $31
+        .end   PutChar
+/* CHANGED */
 
 /* dummy function only to keep gcc happy, it's not actually used */
         .globl  __main
