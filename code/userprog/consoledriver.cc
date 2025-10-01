@@ -48,16 +48,38 @@ int ConsoleDriver::GetChar()
 
 void ConsoleDriver::PutString(const char *s)
 {
-    while (*(s) != '\0')
+    while (*s != '\0')
     {
-        console->TX(*(s++));
-        writeDone->P();
+        PutChar(*s++);
     }
+    DEBUG('s', "PutSting OK\n");
 }
 
 void ConsoleDriver::GetString(char *s, int n)
 {
     // ...
+}
+
+unsigned copyStringFromMachine(int from, char *to, unsigned size)
+{
+    int p;
+    unsigned length = 0;
+    do
+    {
+        machine->ReadMem(from++, 1, &p);
+        *to++ = p;
+        length++;
+    } while (p != '\0' && length < size - 1); // -1 for the case of a long string
+
+    DEBUG('s', "LOOP OK \n");
+    if (length == size - 1) // Assert that the string has a '\0'
+    {
+        *to++ = '\0';
+        length++;
+        DEBUG('s', "IF OK\n");
+    }
+    DEBUG('s', "copyStringFromMachine OK\n");
+    return length;
 }
 
 #endif // CHANGED
