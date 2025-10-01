@@ -36,6 +36,14 @@
 #define SC_PutChar 12
 #endif // CHANGED
 
+#ifdef CHANGED
+#define SC_GetChar 13
+#endif // CHANGED
+
+#ifdef CHANGED
+#define SC_GetString 14
+#endif // CHANGED
+
 #ifdef IN_USER_MODE
 
 // LB: This part is read only on compiling the test/*.c files.

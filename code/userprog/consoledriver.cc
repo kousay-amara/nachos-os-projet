@@ -57,7 +57,16 @@ void ConsoleDriver::PutString(const char *s)
 
 void ConsoleDriver::GetString(char *s, int n)
 {
-    // ...
+#ifdef CHANGED
+    int i =0;
+    while (i<n-1)
+    {
+        char c = GetChar();
+        if (c == '\n') break;
+        s[i++]=c;
+    }
+    s[i]='\0';
+#endif // CHANGED
 }
 
 #endif // CHANGED

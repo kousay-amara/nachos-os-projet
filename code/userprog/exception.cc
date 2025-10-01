@@ -88,6 +88,37 @@ void ExceptionHandler(ExceptionType which)
       break;
     }
 #endif // CHANGED
+
+#ifdef CHANGED
+    case SC_GetChar:
+    {
+      DEBUG('s', "GetChar\n");
+      int c = consoledriver->GetChar();
+      if (c == EOF){
+        machine->WriteRegister(2,-1);
+      } else {
+        machine->WriteRegister(2,c);
+      }
+      break;
+    }
+#endif // CHANGED
+
+#ifdef CHANGED
+case SC_GetString: {
+    int u = machine->ReadRegister(4);
+    int n = machine->ReadRegister(5);
+    char* c = new char[n];
+    consoledriver->GetString(c, n);
+
+    for (int i = 0; i < n; ++i) {
+        machine->WriteMem(u + i, 1, c[i]);
+        if (c[i] == '\0') break;
+    }
+    delete [] c;
+    break;
+}
+#endif // CHANGED
+
     default:
     {
       ASSERT_MSG(FALSE, "Unimplemented system call %d\n", type);
