@@ -87,6 +87,29 @@ void ExceptionHandler(ExceptionType which)
       consoledriver->PutChar(machine->ReadRegister(4));
       break;
     }
+
+    case SC_PutString:
+    {
+      DEBUG('s', "SC_PutString\n");
+      char *s = (char *)malloc(MAX_STRING_LENGTH * sizeof(char));
+      if (s == NULL)
+      {
+        DEBUG('s', "MALLOC ERROR\n"); // if it happens good luck
+        break;
+      }
+      unsigned length = 0, buf;
+      DEBUG('s', "Start LOOP\n");
+      do
+      {
+        buf = copyStringFromMachine(machine->ReadRegister(4) + length, s, MAX_STRING_LENGTH);
+        length += buf; // collect the length the string if needed later and help to navigate the data in register 4
+        consoledriver->PutString(s);
+      } while (buf == MAX_STRING_LENGTH);
+      DEBUG('s', "LOOP OK\n");
+      DEBUG('s', "END OF SC_PutString\n");
+      free(s); // Don't forget to free s !
+      break;
+    }
 #endif // CHANGED
     default:
     {

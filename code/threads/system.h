@@ -17,6 +17,9 @@
 #include "timer.h"
 
 #ifdef CHANGED
+
+#define MAX_STRING_LENGTH 10
+
 #ifdef USER_PROGRAM
 #include "consoledriver.h"
 extern ConsoleDriver *consoledriver;
