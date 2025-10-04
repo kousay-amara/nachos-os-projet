@@ -25,6 +25,8 @@
 #include "system.h"
 #include "syscall.h"
 
+static const unsigned Buf_size = 32;
+
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
 // the user program immediately after the "syscall" instruction.
@@ -87,9 +89,6 @@ void ExceptionHandler(ExceptionType which)
       consoledriver->PutChar(machine->ReadRegister(4));
       break;
     }
-#endif // CHANGED
-
-#ifdef CHANGED
     case SC_GetChar:
     {
       DEBUG('s', "GetChar\n");
@@ -101,22 +100,34 @@ void ExceptionHandler(ExceptionType which)
       }
       break;
     }
-#endif // CHANGED
-
-#ifdef CHANGED
-case SC_GetString: {
-    int u = machine->ReadRegister(4);
-    int n = machine->ReadRegister(5);
-    char* c = new char[n];
-    consoledriver->GetString(c, n);
-
-    for (int i = 0; i < n; ++i) {
-        machine->WriteMem(u + i, 1, c[i]);
-        if (c[i] == '\0') break;
+    case SC_GetString:
+    {
+        int n     = machine->ReadRegister(5);
+        if (n <= 0) break;
+        char* buf = new char[n];
+        consoledriver->GetString(buf, n);
+        copyStringToMachine(machine->ReadRegister(4), buf, (unsigned)n);
+        delete [] buf;
+        break;
     }
-    delete [] c;
+    case SC_PutInt:
+    {
+    char buf[Buf_size];
+    int x = snprintf(buf, Buf_size, "%d", machine->ReadRegister(4));
+    if (x < 0) buf[0] = '\0';
+    consoledriver->PutString(buf);
     break;
-}
+    }
+    case SC_GetInt:
+    {
+    char buf[Buf_size];
+    consoledriver->GetString(buf, Buf_size);
+    int x = 0;
+    int n = sscanf(buf, "%d", &x);
+    if (n != 1) x = 0;
+    machine->WriteMem(machine->ReadRegister(4), 4, x);
+    break;
+    }
 #endif // CHANGED
 
     default:

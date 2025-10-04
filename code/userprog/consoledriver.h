@@ -21,6 +21,7 @@ public:
 private:
     Console *console;
 };
+unsigned copyStringToMachine(int to, const char *from, unsigned size);
 
 #endif // CONSOLEDRIVER_H
 #endif // CHANGED
