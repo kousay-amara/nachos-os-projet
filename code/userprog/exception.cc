@@ -25,6 +25,8 @@
 #include "system.h"
 #include "syscall.h"
 
+static const unsigned Buf_size = 32;
+
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
 // the user program immediately after the "syscall" instruction.
@@ -87,7 +89,17 @@ void ExceptionHandler(ExceptionType which)
       consoledriver->PutChar(machine->ReadRegister(4));
       break;
     }
-
+    case SC_GetChar:
+    {
+      DEBUG('s', "GetChar\n");
+      int c = consoledriver->GetChar();
+      if (c == EOF){
+        machine->WriteRegister(2,-1);
+      } else {
+        machine->WriteRegister(2,c);
+      }
+      break;
+    }
     case SC_PutString:
     {
       DEBUG('s', "SC_PutString\n");
@@ -110,7 +122,36 @@ void ExceptionHandler(ExceptionType which)
       free(s); // Don't forget to free s !
       break;
     }
+    case SC_GetString:
+    {
+      int n     = machine->ReadRegister(5);
+      if (n <= 0) break;
+      char* buf = new char[n];
+      consoledriver->GetString(buf, n);
+      copyStringToMachine(machine->ReadRegister(4), buf, (unsigned)n);
+      delete [] buf;
+      break;
+    }
+    case SC_PutInt:
+    {
+      char buf[Buf_size];
+      int x = snprintf(buf, Buf_size, "%d", machine->ReadRegister(4));
+      if (x < 0) buf[0] = '\0';
+      consoledriver->PutString(buf);
+      break;
+    }
+    case SC_GetInt:
+    {
+      char buf[Buf_size];
+      consoledriver->GetString(buf, Buf_size);
+      int x = 0;
+      int n = sscanf(buf, "%d", &x);
+      if (n != 1) x = 0;
+      machine->WriteMem(machine->ReadRegister(4), 4, x);
+      break;
+    }
 #endif // CHANGED
+
     default:
     {
       ASSERT_MSG(FALSE, "Unimplemented system call %d\n", type);
