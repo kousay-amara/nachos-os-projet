@@ -159,7 +159,7 @@ Yield:
         .end   Yield
 
 /* CHANGED */
-       .globl PutChar
+        .globl PutChar
         .ent   PutChar
 PutChar:
         addiu $2,$0,SC_PutChar
@@ -174,6 +174,14 @@ GetChar:
         syscall
         j        $31
         .end   GetChar
+
+        .globl PutString
+        .ent   PutString
+PutString:
+        addiu $2,$0,SC_PutString
+        syscall
+        j        $31
+        .end   PutString
 
         .globl GetString
         .ent   GetString

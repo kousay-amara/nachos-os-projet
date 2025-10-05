@@ -100,33 +100,55 @@ void ExceptionHandler(ExceptionType which)
       }
       break;
     }
+    case SC_PutString:
+    {
+      DEBUG('s', "SC_PutString\n");
+      char *s = (char *)malloc(MAX_STRING_LENGTH * sizeof(char));
+      if (s == NULL)
+      {
+        DEBUG('s', "MALLOC ERROR\n"); // if it happens good luck
+        break;
+      }
+      unsigned length = 0, buf;
+      DEBUG('s', "Start LOOP\n");
+      do
+      {
+        buf = copyStringFromMachine(machine->ReadRegister(4) + length, s, MAX_STRING_LENGTH);
+        length += buf; // collect the length the string if needed later and help to navigate the data in register 4
+        consoledriver->PutString(s);
+      } while (buf == MAX_STRING_LENGTH);
+      DEBUG('s', "LOOP OK\n");
+      DEBUG('s', "END OF SC_PutString\n");
+      free(s); // Don't forget to free s !
+      break;
+    }
     case SC_GetString:
     {
-        int n     = machine->ReadRegister(5);
-        if (n <= 0) break;
-        char* buf = new char[n];
-        consoledriver->GetString(buf, n);
-        copyStringToMachine(machine->ReadRegister(4), buf, (unsigned)n);
-        delete [] buf;
-        break;
+      int n     = machine->ReadRegister(5);
+      if (n <= 0) break;
+      char* buf = new char[n];
+      consoledriver->GetString(buf, n);
+      copyStringToMachine(machine->ReadRegister(4), buf, (unsigned)n);
+      delete [] buf;
+      break;
     }
     case SC_PutInt:
     {
-    char buf[Buf_size];
-    int x = snprintf(buf, Buf_size, "%d", machine->ReadRegister(4));
-    if (x < 0) buf[0] = '\0';
-    consoledriver->PutString(buf);
-    break;
+      char buf[Buf_size];
+      int x = snprintf(buf, Buf_size, "%d", machine->ReadRegister(4));
+      if (x < 0) buf[0] = '\0';
+      consoledriver->PutString(buf);
+      break;
     }
     case SC_GetInt:
     {
-    char buf[Buf_size];
-    consoledriver->GetString(buf, Buf_size);
-    int x = 0;
-    int n = sscanf(buf, "%d", &x);
-    if (n != 1) x = 0;
-    machine->WriteMem(machine->ReadRegister(4), 4, x);
-    break;
+      char buf[Buf_size];
+      consoledriver->GetString(buf, Buf_size);
+      int x = 0;
+      int n = sscanf(buf, "%d", &x);
+      if (n != 1) x = 0;
+      machine->WriteMem(machine->ReadRegister(4), 4, x);
+      break;
     }
 #endif // CHANGED
 
