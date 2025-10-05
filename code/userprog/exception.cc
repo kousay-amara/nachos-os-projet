@@ -83,6 +83,14 @@ void ExceptionHandler(ExceptionType which)
       break;
     }
 #ifdef CHANGED
+    case SC_Exit:
+    {
+      DEBUG('s', "Exit\n");
+      int status = machine->ReadRegister(4);
+      DEBUG('s', "Shutdown, initiated by %d\n", status);
+      interrupt->Powerdown();
+      break;
+    }
     case SC_PutChar:
     {
       DEBUG('s', "PutChar\n");

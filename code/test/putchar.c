@@ -14,6 +14,5 @@ int main()
 {
 #ifdef CHANGED
     print('a', 4);
-    Halt();
 #endif // CHANGED
 }
