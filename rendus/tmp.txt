@@ -1,0 +1,11 @@
+I.1 : lire le fichier thread.cc et thread.h
+I.2 : progtest.cc -> StartProcess
+    crée un AddrSpace avec l'executable donné par l'ouverture du fichier cible
+    AddrSpace renvoie un pointeur vers la mémoire alloué au thread, mis dans le pointeur de l'espace dans le thread.
+    initialise ensuite les valeurs initiales des registers et les tableaux.
+
+    addrspace.cc -> AddrSpace
+    lit l'executable, vérifie c'est un programme MIPS, puis sa taille pour voir s'il y a de la place pour la pile,
+    regarde le nombre de page du fichier (128o) puis traduit les données en table et les charge dans la mémoire physique (on a pas de VRAM)
+
+I.3 : 

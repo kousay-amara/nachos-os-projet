@@ -24,7 +24,9 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
-
+#ifdef CHANGED
+#include "userthread.h"
+#endif // CHANGED
 static const unsigned Buf_size = 32;
 
 //----------------------------------------------------------------------
@@ -101,10 +103,13 @@ void ExceptionHandler(ExceptionType which)
     {
       DEBUG('s', "GetChar\n");
       int c = consoledriver->GetChar();
-      if (c == EOF){
-        machine->WriteRegister(2,-1);
-      } else {
-        machine->WriteRegister(2,c);
+      if (c == EOF)
+      {
+        machine->WriteRegister(2, -1);
+      }
+      else
+      {
+        machine->WriteRegister(2, c);
       }
       break;
     }
@@ -132,19 +137,21 @@ void ExceptionHandler(ExceptionType which)
     }
     case SC_GetString:
     {
-      int n     = machine->ReadRegister(5);
-      if (n <= 0) break;
-      char* buf = new char[n];
+      int n = machine->ReadRegister(5);
+      if (n <= 0)
+        break;
+      char *buf = new char[n];
       consoledriver->GetString(buf, n);
       copyStringToMachine(machine->ReadRegister(4), buf, (unsigned)n);
-      delete [] buf;
+      delete[] buf;
       break;
     }
     case SC_PutInt:
     {
       char buf[Buf_size];
       int x = snprintf(buf, Buf_size, "%d", machine->ReadRegister(4));
-      if (x < 0) buf[0] = '\0';
+      if (x < 0)
+        buf[0] = '\0';
       consoledriver->PutString(buf);
       break;
     }
@@ -154,8 +161,19 @@ void ExceptionHandler(ExceptionType which)
       consoledriver->GetString(buf, Buf_size);
       int x = 0;
       int n = sscanf(buf, "%d", &x);
-      if (n != 1) x = 0;
+      if (n != 1)
+        x = 0;
       machine->WriteMem(machine->ReadRegister(4), 4, x);
+      break;
+    }
+    case SC_ThreadCreate:
+    {
+      ASSERT_MSG(FALSE, "Unimplemented system call %d\n", type);
+      break;
+    }
+    case SC_ThreadExit:
+    {
+      ASSERT_MSG(FALSE, "Unimplemented system call %d\n", type);
       break;
     }
 #endif // CHANGED

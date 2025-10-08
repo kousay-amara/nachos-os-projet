@@ -39,6 +39,9 @@
 #define SC_GetString 15
 #define SC_PutInt 16
 #define SC_GetInt 17
+
+#define SC_ThreadCreate 18
+#define SC_ThreadExit 19
 #endif // CHANGED
 
 #ifdef IN_USER_MODE
@@ -136,11 +139,14 @@ void Yield(void);
 
 #ifdef CHANGED
 void PutChar(char c);
-int  GetChar(void);
+int GetChar(void);
 void PutString(const char *s);
 void GetString(char *s, int n);
 void PutInt(int n);
 void GetInt(int *n);
+
+int ThreadCreate(void f(void *arg), void *arg);
+void ThreadExit(void);
 #endif // CHANGED
 
 #endif // IN_USER_MODE
