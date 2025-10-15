@@ -105,6 +105,7 @@ void Semaphore::V()
 // Dummy functions -- so we can compile our later assignments
 // Note -- without a correct implementation of Condition::Wait(),
 // the test case in the network assignment won't work!
+#ifdef CHANGED
 Lock::Lock(const char *debugName)
 {
     name = debugName;
@@ -147,7 +148,7 @@ void Lock::Release()
     value = 1;
     (void)interrupt->SetLevel(oldLevel);
 }
-
+#endif // CHANGED
 Condition::Condition(const char *debugName)
 {
     (void)debugName;

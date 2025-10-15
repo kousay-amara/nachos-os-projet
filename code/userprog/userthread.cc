@@ -4,6 +4,8 @@
 #include "thread.h"
 #include "system.h"
 
+static void StartUserThread(void *schmurtz);
+
 int do_ThreadCreate(int f, int arg)
 {
     int farg[2] = {f, arg};
@@ -12,9 +14,10 @@ int do_ThreadCreate(int f, int arg)
     return 0; // Add return -1 if fail later..
 }
 
-static void StarUserThread(void *farg)
+static void StartUserThread(void *_farg)
 {
     // Collect the function and its arguments then free the pointer
+    int *farg = (int *)_farg;
     int f = farg[0], arg = farg[1];
     free(farg); // free the now useless pointer (here and not in do_ThreadCreate)
 
@@ -24,7 +27,7 @@ static void StarUserThread(void *farg)
     DEBUG('s', "Load f : %d in register %d/nLoad arg : %d in register 4", f, PCReg, arg);
     machine->WriteRegister(NextPCReg, machine->ReadRegister(PCReg) + 4);         // Don't forget to setup the next instruction for the branch delay possibility
     machine->WriteRegister(StackReg, currentThread->space->AllocateUserStack()); // Add the stack that will be used by the current thread
-    DEBUG('s', "WriteRegister x4 DONE")
+    DEBUG('s', "WriteRegister x4 DONE");
 
     machine->Run();
 }
