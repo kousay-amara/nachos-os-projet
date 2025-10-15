@@ -173,7 +173,7 @@ void ExceptionHandler(ExceptionType which)
     }
     case SC_ThreadExit:
     {
-      ASSERT_MSG(FALSE, "Unimplemented system call %d\n", type);
+      do_ThreadExit();
       break;
     }
 #endif // CHANGED
