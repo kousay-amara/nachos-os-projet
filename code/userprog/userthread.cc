@@ -9,6 +9,7 @@ int do_ThreadCreate(int f, int arg)
     int farg[2] = {f, arg};
     Thread *newthread = new Thread("newThread");
     newthread->Start(StartUserThread, farg);
+    return 0; // Add return -1 if fail later..
 }
 
 static void StarUserThread(void *farg)
