@@ -33,5 +33,4 @@ void do_ThreadExit()
     currentThread->Finish();
 }
 
-
 #endif // CHANGED

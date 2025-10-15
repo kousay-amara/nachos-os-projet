@@ -168,7 +168,7 @@ void ExceptionHandler(ExceptionType which)
     }
     case SC_ThreadCreate:
     {
-      ASSERT_MSG(FALSE, "Unimplemented system call %d\n", type);
+      do_ThreadCreate(machine->ReadRegister(4), machine->ReadRegister(5));
       break;
     }
     case SC_ThreadExit:
