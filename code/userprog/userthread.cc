@@ -2,6 +2,7 @@
 
 #include "userthread.h"
 #include "thread.h"
+#include "system.h"
 
 int do_ThreadCreate(int f, int arg)
 {
@@ -26,5 +27,11 @@ static void StarUserThread(void *farg)
 
     machine->Run();
 }
+
+void do_ThreadExit()
+{
+    currentThread->Finish();
+}
+
 
 #endif // CHANGED
