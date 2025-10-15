@@ -168,7 +168,8 @@ void ExceptionHandler(ExceptionType which)
     }
     case SC_ThreadCreate:
     {
-      do_ThreadCreate(machine->ReadRegister(4), machine->ReadRegister(5));
+      machine->WriteRegister(2, do_ThreadCreate(machine->ReadRegister(4), machine->ReadRegister(5)));
+      UpdatePC();
       break;
     }
     case SC_ThreadExit:

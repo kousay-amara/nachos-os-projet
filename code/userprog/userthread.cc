@@ -8,8 +8,11 @@ static void StartUserThread(void *schmurtz);
 
 int do_ThreadCreate(int f, int arg)
 {
-    int farg[2] = {f, arg};
+    int *farg = new int[2];
+    farg[0] = f;
+    farg[1] = arg;
     Thread *newthread = new Thread("newThread");
+    newthread->space = currentThread->space;
     newthread->Start(StartUserThread, farg);
     return 0; // Add return -1 if fail later..
 }
@@ -19,7 +22,7 @@ static void StartUserThread(void *_farg)
     // Collect the function and its arguments then free the pointer
     int *farg = (int *)_farg;
     int f = farg[0], arg = farg[1];
-    free(farg); // free the now useless pointer (here and not in do_ThreadCreate)
+    delete[] farg;  // free the now useless pointer (here and not in do_ThreadCreate)
 
     DEBUG('s', "WriteRegister x4 START");
     machine->WriteRegister(PCReg, f); // Set the function in the current program counter
