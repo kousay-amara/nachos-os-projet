@@ -21,6 +21,7 @@
 #include "noff.h"
 #include "syscall.h"
 #include "new"
+#include "synch.h"
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -126,6 +127,11 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
     pageTable[0].valid = FALSE; // Catch NULL dereference
 
+    #ifdef CHANGED
+    threadCount = 1;
+    threadCountLock = new Semaphore("thread count lock", 1);
+    #endif // CHANGED
+
     AddrSpaceList.Append(this);
 }
 
@@ -136,11 +142,42 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 AddrSpace::~AddrSpace()
 {
+    #ifdef CHANGED
+    if (threadCountLock != NULL) {
+        delete threadCountLock;
+    }
+    #endif // CHANGED
     delete[] pageTable;
     pageTable = NULL;
 
     AddrSpaceList.Remove(this);
 }
+
+#ifdef CHANGED
+void AddrSpace::IncrementThreadCount()
+{
+    threadCountLock->P();
+    threadCount++;
+    DEBUG('t', "Thread count incremented to %d\n", threadCount);
+    threadCountLock->V();
+}
+
+void AddrSpace::DecrementThreadCount()
+{
+    threadCountLock->P();
+    threadCount--;
+    DEBUG('t', "Thread count decremented to %d\n", threadCount);
+    threadCountLock->V();
+}
+
+int AddrSpace::GetThreadCount()
+{
+    threadCountLock->P();
+    int count = threadCount;
+    threadCountLock->V();
+    return count;
+}
+#endif // CHANGED
 
 //----------------------------------------------------------------------
 // AddrSpace::InitRegisters

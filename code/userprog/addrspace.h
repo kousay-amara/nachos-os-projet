@@ -19,6 +19,10 @@
 #include "noff.h"
 #include "list.h"
 
+#ifdef CHANGED
+class Semaphore;
+#endif // CHANGED
+
 #define UserStacksAreaSize 1024 // increase this as necessary!
 
 class AddrSpace : public dontcopythis
@@ -42,6 +46,9 @@ public:
   unsigned NumPages(void) { return numPages; }
 #ifdef CHANGED
   int AllocateUserStack();
+  void IncrementThreadCount();
+  void DecrementThreadCount();
+  int GetThreadCount();
 #endif // CHANGED
 
 private:
@@ -49,6 +56,10 @@ private:
 
   TranslationEntry *pageTable; // Page table
   unsigned int numPages;       // Number of pages in the page table
+  #ifdef CHANGED
+  int threadCount;
+  Semaphore *threadCountLock;  // Sémaphore pour protéger le compteur
+  #endif // CHANGED
 };
 
 extern List AddrspaceList;

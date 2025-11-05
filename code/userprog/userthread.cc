@@ -31,7 +31,7 @@ static void StartUserThread(void *_farg)
     machine->WriteRegister(NextPCReg, machine->ReadRegister(PCReg) + 4);         // Don't forget to setup the next instruction for the branch delay possibility
     machine->WriteRegister(StackReg, currentThread->space->AllocateUserStack()); // Add the stack that will be used by the current thread
     DEBUG('s', "WriteRegister x4 DONE");
-
+    machine->DumpMem("threads.svg");
     machine->Run();
 }
 
