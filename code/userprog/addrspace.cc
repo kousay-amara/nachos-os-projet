@@ -130,6 +130,9 @@ AddrSpace::AddrSpace(OpenFile *executable)
     #ifdef CHANGED
     threadCount = 1;
     threadCountLock = new Semaphore("thread count lock", 1);
+    int numStackSlots = UserStacksAreaSize / STACK_SLOT_SIZE;
+    stackBitmap = new BitMap(numStackSlots);
+    stackBitmap->Mark(0);
     #endif // CHANGED
 
     AddrSpaceList.Append(this);
@@ -145,6 +148,9 @@ AddrSpace::~AddrSpace()
     #ifdef CHANGED
     if (threadCountLock != NULL) {
         delete threadCountLock;
+    }
+    if (stackBitmap != NULL) {
+        delete stackBitmap;
     }
     #endif // CHANGED
     delete[] pageTable;
@@ -327,10 +333,27 @@ void AddrSpace::RestoreState()
 }
 
 #ifdef CHANGED
-int AddrSpace::AllocateUserStack()
-{
-    DEBUG('a', "Initializing stack register to 0x%x\n", numPages * PageSize - 256);
-    return numPages * PageSize - 256;
+int AddrSpace::AllocateUserStack() {
+    int slot = stackBitmap->Find();
+    
+    if (slot == -1) {
+        DEBUG('a', "No more stack slots available!\n");
+        return -1;
+    }
+    // Calculer l'adresse de la pile
+    int stackAddr = numPages * PageSize - (slot * STACK_SLOT_SIZE);
+    
+    DEBUG('a', "Allocated stack slot %d at address 0x%x\n", slot, stackAddr);
+    
+    return stackAddr;
 }
 
+void AddrSpace::FreeUserStack(int stackAddr) {
+    int slot = (numPages * PageSize - stackAddr) / STACK_SLOT_SIZE;
+    
+    if (slot >= 0 && slot < (UserStacksAreaSize / STACK_SLOT_SIZE)) {
+        stackBitmap->Clear(slot);
+        DEBUG('a', "Freed stack slot %d (was at 0x%x)\n", slot, stackAddr);
+    }
+}
 #endif // CHANGED

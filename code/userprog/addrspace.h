@@ -21,9 +21,10 @@
 
 #ifdef CHANGED
 class Semaphore;
+#include "bitmap.h"
+#define UserStacksAreaSize 2048
+#define STACK_SLOT_SIZE 256
 #endif // CHANGED
-
-#define UserStacksAreaSize 1024 // increase this as necessary!
 
 class AddrSpace : public dontcopythis
 {
@@ -46,6 +47,7 @@ public:
   unsigned NumPages(void) { return numPages; }
 #ifdef CHANGED
   int AllocateUserStack();
+  void FreeUserStack(int stackAddr);
   void IncrementThreadCount();
   void DecrementThreadCount();
   int GetThreadCount();
@@ -59,6 +61,7 @@ private:
   #ifdef CHANGED
   int threadCount;
   Semaphore *threadCountLock;  // Sémaphore pour protéger le compteur
+  BitMap *stackBitmap;
   #endif // CHANGED
 };
 
