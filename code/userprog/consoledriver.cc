@@ -24,6 +24,8 @@ ConsoleDriver::ConsoleDriver(const char *in, const char *out)
 {
     readAvail = new Semaphore("read avail", 0);
     writeDone = new Semaphore("write done", 0);
+    consoleMutex = new Semaphore("console mutex", 1);
+    //consoleLock = new Lock("console lock");
     console = new Console(in, out, ReadAvailHandler, WriteDoneHandler, NULL);
 }
 
@@ -32,22 +34,36 @@ ConsoleDriver::~ConsoleDriver()
     delete console;
     delete writeDone;
     delete readAvail;
+    delete consoleMutex;
+    //delete consoleLock;
 }
 
 void ConsoleDriver::PutChar(int ch)
 {
+    //consoleLock->Acquire();
+    consoleMutex->P();
     console->TX(ch);
     writeDone->P(); // wait for write to finish
+    consoleMutex->V();
+    //consoleLock->Release();
 }
 
 int ConsoleDriver::GetChar()
 {
+    //consoleLock->Acquire();
+    consoleMutex->P();
     readAvail->P();       // wait for character to arrive
-    return console->RX(); // return our char as int
+    int ch = console->RX();
+    consoleMutex->V();
+    //consoleLock->Release();
+    return ch;
 }
 
 void ConsoleDriver::PutString(const char *s)
 {
+    if (s==NULL){
+        return;
+    }
     while (*s != '\0')
     {
         PutChar(*s++);

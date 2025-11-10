@@ -4,6 +4,7 @@
 #include "copyright.h"
 #include "utility.h"
 #include "console.h"
+#include "synch.h"
 
 class ConsoleDriver : dontcopythis
 {
@@ -20,6 +21,8 @@ public:
 
 private:
     Console *console;
+    Semaphore *consoleMutex;
+    //Lock *consoleLock;
 };
 
 unsigned copyStringToMachine(int to, const char *from, unsigned size);
