@@ -23,8 +23,10 @@
 #ifdef USER_PROGRAM
 #include "consoledriver.h"
 extern ConsoleDriver *consoledriver;
+#include "pageprovider.h"
+extern PageProvider *pageProvider;
 #endif
-#endif
+#endif // CHANGED
 
 // Initialization and cleanup routines
 extern void Initialize(int argc, char **argv); // Initialization,

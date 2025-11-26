@@ -22,7 +22,6 @@ public:
 private:
     Console *console;
     Semaphore *consoleMutex;
-    //Lock *consoleLock;
 };
 
 unsigned copyStringToMachine(int to, const char *from, unsigned size);

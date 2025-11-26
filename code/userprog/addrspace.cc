@@ -20,6 +20,9 @@
 #include "addrspace.h"
 #include "noff.h"
 #include "syscall.h"
+#ifdef CHANGED
+#include "pageprovider.h"
+#endif // CHANGED
 #include "new"
 #include "synch.h"
 
@@ -28,33 +31,32 @@
 //      Read data from an executable into the virtual address space
 //      described by pageTable.
 //----------------------------------------------------------------------
+#ifdef CHANGED
 static void
 ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes,
-            int position, TranslationEntry *pageTable, unsigned numPages)
+              int position, TranslationEntry *pageTable, unsigned numPages)
 {
     if (numBytes <= 0)
         return;
-
     char *buffer = new char[numBytes];
     int bytesRead = executable->ReadAt(buffer, numBytes, position);
-
     TranslationEntry *oldTable = machine->currentPageTable;
     unsigned int oldSize = machine->currentPageTableSize;
-
     machine->currentPageTable = pageTable;
     machine->currentPageTableSize = numPages;
-
+    
     for (int i = 0; i < bytesRead; i++)
     {
         bool ok = machine->WriteMem(virtualaddr + i, 1, (int)(unsigned char)buffer[i]);
         ASSERT(ok);
     }
-
+    
     machine->currentPageTable = oldTable;
     machine->currentPageTableSize = oldSize;
-
+    
     delete[] buffer;
 }
+#endif // CHANGED
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -117,12 +119,12 @@ AddrSpace::AddrSpace(OpenFile *executable)
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 
-    // check we're not trying
-    // to run anything too big --
-    // at least until we have
-    // virtual memory
-    if (numPages + 1 > NumPhysPages)
+    // check we're not trying to run anything too big
+#ifdef CHANGED
+    ASSERT(pageProvider != NULL);
+    if (numPages > pageProvider->NumAvailPage())
         throw std::bad_alloc();
+#endif // CHANGED
 
     DEBUG('a', "Initializing address space, num pages %d, total size 0x%x\n",
           numPages, size);
@@ -130,7 +132,12 @@ AddrSpace::AddrSpace(OpenFile *executable)
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++)
     {
-        pageTable[i].physicalPage = i + 1; //  virtual page i to physical page i+1
+        int phys = i + 1;
+#ifdef CHANGED
+        phys = pageProvider->GetEmptyPage();
+        ASSERT(phys != -1);
+#endif // CHANGED
+        pageTable[i].physicalPage = phys;
         pageTable[i].valid = TRUE;
         pageTable[i].use = FALSE;
         pageTable[i].dirty = FALSE;
@@ -144,15 +151,19 @@ AddrSpace::AddrSpace(OpenFile *executable)
     {
         DEBUG('a', "Initializing code segment, at 0x%x, size 0x%x\n",
               noffH.code.virtualAddr, noffH.code.size);
+        #ifdef CHANGED
         ReadAtVirtual(executable, noffH.code.virtualAddr, noffH.code.size,
                       noffH.code.inFileAddr, pageTable, numPages);
+        #endif // CHANGED
     }
     if (noffH.initData.size > 0)
     {
         DEBUG('a', "Initializing data segment, at 0x%x, size 0x%x\n",
               noffH.initData.virtualAddr, noffH.initData.size);
+        #ifdef CHANGED
         ReadAtVirtual(executable, noffH.initData.virtualAddr, noffH.initData.size,
                       noffH.initData.inFileAddr, pageTable, numPages);
+        #endif // CHANGED
     }
 
     DEBUG('a', "Area for stacks at 0x%x, size 0x%x\n",
@@ -160,13 +171,14 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
     pageTable[0].valid = FALSE; // Catch NULL dereference
 
-    #ifdef CHANGED
+#ifdef CHANGED
     threadCount = 1;
     threadCountLock = new Semaphore("thread count lock", 1);
     int numStackSlots = UserStacksAreaSize / STACK_SLOT_SIZE;
     stackBitmap = new BitMap(numStackSlots);
     stackBitmap->Mark(0);
-    #endif // CHANGED
+    machine->DumpMem("addrspace.svg");
+#endif // CHANGED
 
     AddrSpaceList.Append(this);
 }
@@ -184,6 +196,9 @@ AddrSpace::~AddrSpace()
     }
     if (stackBitmap != NULL) {
         delete stackBitmap;
+    }
+    for (unsigned int i = 0; i < numPages; i++) {
+        pageProvider->ReleasePage(pageTable[i].physicalPage);
     }
     #endif // CHANGED
     delete[] pageTable;
