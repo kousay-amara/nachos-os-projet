@@ -24,6 +24,39 @@
 #include "synch.h"
 
 //----------------------------------------------------------------------
+// ReadAtVirtual
+//      Read data from an executable into the virtual address space
+//      described by pageTable.
+//----------------------------------------------------------------------
+static void
+ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes,
+            int position, TranslationEntry *pageTable, unsigned numPages)
+{
+    if (numBytes <= 0)
+        return;
+
+    char *buffer = new char[numBytes];
+    int bytesRead = executable->ReadAt(buffer, numBytes, position);
+
+    TranslationEntry *oldTable = machine->currentPageTable;
+    unsigned int oldSize = machine->currentPageTableSize;
+
+    machine->currentPageTable = pageTable;
+    machine->currentPageTableSize = numPages;
+
+    for (int i = 0; i < bytesRead; i++)
+    {
+        bool ok = machine->WriteMem(virtualaddr + i, 1, (int)(unsigned char)buffer[i]);
+        ASSERT(ok);
+    }
+
+    machine->currentPageTable = oldTable;
+    machine->currentPageTableSize = oldSize;
+
+    delete[] buffer;
+}
+
+//----------------------------------------------------------------------
 // SwapHeader
 //      Do little endian to big endian conversion on the bytes in the
 //      object file header, in case the file was generated on a little
@@ -88,7 +121,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     // to run anything too big --
     // at least until we have
     // virtual memory
-    if (numPages > NumPhysPages)
+    if (numPages + 1 > NumPhysPages)
         throw std::bad_alloc();
 
     DEBUG('a', "Initializing address space, num pages %d, total size 0x%x\n",
@@ -97,7 +130,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++)
     {
-        pageTable[i].physicalPage = i; // for now, phys page # = virtual page #
+        pageTable[i].physicalPage = i + 1; //  virtual page i to physical page i+1
         pageTable[i].valid = TRUE;
         pageTable[i].use = FALSE;
         pageTable[i].dirty = FALSE;
@@ -111,15 +144,15 @@ AddrSpace::AddrSpace(OpenFile *executable)
     {
         DEBUG('a', "Initializing code segment, at 0x%x, size 0x%x\n",
               noffH.code.virtualAddr, noffH.code.size);
-        executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
-                           noffH.code.size, noffH.code.inFileAddr);
+        ReadAtVirtual(executable, noffH.code.virtualAddr, noffH.code.size,
+                      noffH.code.inFileAddr, pageTable, numPages);
     }
     if (noffH.initData.size > 0)
     {
         DEBUG('a', "Initializing data segment, at 0x%x, size 0x%x\n",
               noffH.initData.virtualAddr, noffH.initData.size);
-        executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
-                           noffH.initData.size, noffH.initData.inFileAddr);
+        ReadAtVirtual(executable, noffH.initData.virtualAddr, noffH.initData.size,
+                      noffH.initData.inFileAddr, pageTable, numPages);
     }
 
     DEBUG('a', "Area for stacks at 0x%x, size 0x%x\n",
