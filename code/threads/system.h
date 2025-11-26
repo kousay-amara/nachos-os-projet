@@ -18,7 +18,7 @@
 
 #ifdef CHANGED
 
-#define MAX_STRING_LENGTH 10
+#define MAX_STRING_LENGTH 256
 
 #ifdef USER_PROGRAM
 #include "consoledriver.h"

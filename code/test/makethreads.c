@@ -8,7 +8,6 @@ void aux(void *arg){
 
 int main(){
     ThreadCreate(aux, 0);
-    while (1) {}
-    return 0;
+    ThreadExit();
 }
 #endif // CHANGED

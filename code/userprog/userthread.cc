@@ -19,6 +19,12 @@ int do_ThreadCreate(int f, int arg) {
     farg[2] = stackAddr;
     
     Thread *newthread = new Thread("newThread");
+    if (newthread == NULL) {
+        currentThread->space->FreeUserStack(stackAddr);
+        DEBUG('t', "Thread creation failed: kernel thread allocation\n");
+        delete[] farg;
+        return -1;
+    }
     newthread->space = currentThread->space;
     currentThread->space->IncrementThreadCount();
     newthread->Start(StartUserThread, farg);
@@ -30,12 +36,16 @@ static void StartUserThread(void *_farg) {
     int f = farg[0], arg = farg[1], stackAddr = farg[2];
     delete[] farg;
 
+    for (int i = 0; i < NumTotalRegs; i++) {
+        machine->WriteRegister(i, 0);
+    }
     machine->WriteRegister(PCReg, f);
     machine->WriteRegister(4, arg);
+    machine->WriteRegister(PrevPCReg, f - 4); // l'adresse de l'instruction précédente
     machine->WriteRegister(NextPCReg, machine->ReadRegister(PCReg) + 4);
-    machine->WriteRegister(StackReg, stackAddr);
+    machine->WriteRegister(StackReg, stackAddr - 16);
     
-    DEBUG('t', "Starting user thread at function %x with stack %x\n", f, stackAddr);
+    DEBUG('t', "Starting user thread at function %x with stack %x\n", f, stackAddr - 16);
     
     machine->Run();
 }
