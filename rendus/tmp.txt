@@ -9,3 +9,20 @@ I.2 : progtest.cc -> StartProcess
     regarde le nombre de page du fichier (128o) puis traduit les données en table et les charge dans la mémoire physique (on a pas de VRAM)
 
 I.3 : 
+
+TP3
+Partie I:
+
+Bilan
+-chargement via ReadAtVirtual OK, mapping virt→phys non identitaire (pages décalées) OK.
+userpages0 et multiple_threads_test tournent sans faute
+-pageProvider en place pour l’allocation/libération des pages physiques
+-addrspace.svg généré pour visualiser les mappings
+
+Points délicats
+-ReadAtVirtual : sauvegarde/restauration des pointeurs de page table
+-gérer l’alloc non identitaire via PageProvider (bitmap + choix pseudo-aléatoire)
+
+Test
+- userpages0 (affichage basique de A) pour valider le chargement et les accès mémoire
+- multiple_threads_test pour vérifier cohérence des piles/allocations en présence de plusieurs threads
