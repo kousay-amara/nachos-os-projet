@@ -4,11 +4,12 @@ void thread_func(void *arg) {
     int thread_id = (int)arg;
     volatile int i;
     
+    char message[7];
+    
     PutString("Thread ");
     PutInt(thread_id);
     PutString(": started\n");
     
-    char message[6];
     for(i = 0; i < 5; i++) {
         message[i] = 'A' + thread_id;
     }

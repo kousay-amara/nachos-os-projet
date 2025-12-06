@@ -5,8 +5,8 @@
 #include "system.h"
 
 int do_ForkExec(int filenameAddr) {
-    char *filename = new char[MAX_STRING_SIZE];
-    copyStringFromMachine(filenameAddr, filename, MAX_STRING_SIZE);
+    char *filename = new char[MAX_STRING_LENGTH];
+    copyStringFromMachine(filenameAddr, filename, MAX_STRING_LENGTH);
 
     OpenFile *executable = fileSystem->Open(filename);
     if (executable == NULL) {
@@ -17,6 +17,8 @@ int do_ForkExec(int filenameAddr) {
 
     AddrSpace *space = new AddrSpace(executable);
 
+    delete executable;
+
     Thread *t = new Thread("Forked Process");
     t->space = space;
 
@@ -26,10 +28,13 @@ int do_ForkExec(int filenameAddr) {
     return 0;
 }
 
-static void StartUserProg(void *arg) {
+void StartUserProg(void *arg) {
     (void) arg;
     currentThread->space->InitRegisters(); // set the initial register values
     currentThread->space->RestoreState();  // load page table register
+    
+    machine->Run();
+    
     ASSERT_MSG(FALSE, "Machine->Run returned???\n"); // machine->Run never returns;
     ASSERT(FALSE);
 }
