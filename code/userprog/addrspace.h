@@ -22,7 +22,7 @@
 #ifdef CHANGED
 class Semaphore;
 #include "bitmap.h"
-#define UserStacksAreaSize 2048
+#define UserStacksAreaSize 4096
 #define STACK_SLOT_SIZE 256
 #endif // CHANGED
 
