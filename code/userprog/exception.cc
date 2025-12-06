@@ -26,6 +26,7 @@
 #include "syscall.h"
 #ifdef CHANGED
 #include "userthread.h"
+#include "userproc.h"
 #endif // CHANGED
 static const unsigned Buf_size = 32;
 
@@ -69,6 +70,14 @@ UpdatePC()
 
 void ExceptionHandler(ExceptionType which)
 {
+#ifdef CHANGED
+  if (currentThread->space == NULL) {
+        DEBUG('s', "Thread zombie detected, shutdown.\n");
+        currentThread->Finish();
+        return;
+  }
+#endif // CHANGED
+  
   int type = machine->ReadRegister(2);
   int address = machine->ReadRegister(BadVAddrReg);
 
@@ -89,8 +98,23 @@ void ExceptionHandler(ExceptionType which)
     {
       DEBUG('s', "Exit\n");
       int status = machine->ReadRegister(4);
-      DEBUG('s', "Shutdown, initiated by %d\n", status);
-      interrupt->Powerdown();
+      DEBUG('s', "Process %s shutdown with status %d\n", currentThread->getName(), status);
+      processCountMutex->P();
+      processCount--;
+      bool lastProcess = (processCount == 0);
+      processCountMutex->V();
+
+      if (lastProcess) {
+        DEBUG('s', "Last process exiting. Shutdown machine.\n");
+        interrupt->Powerdown();
+      } else {
+        DEBUG('s', "Process exiting but others are still running.\n");
+        AddrSpace *space = currentThread->space;
+        space->ClearConsoleLocks();
+        delete space;
+        currentThread->space = NULL;
+        currentThread->Finish();
+      }
       break;
     }
     case SC_PutChar:
@@ -175,6 +199,14 @@ void ExceptionHandler(ExceptionType which)
     case SC_ThreadExit:
     {
       do_ThreadExit();
+      break;
+    }
+    case SC_ForkExec: 
+    {
+      DEBUG('s', "ForkExec\n");
+      int filenameAddr = machine->ReadRegister(4);
+      int res = do_ForkExec(filenameAddr);
+      machine->WriteRegister(2, res);
       break;
     }
 #endif // CHANGED

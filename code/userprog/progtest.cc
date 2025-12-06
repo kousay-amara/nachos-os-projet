@@ -37,10 +37,20 @@ void StartProcess(char *filename)
     space = new AddrSpace(executable);
     currentThread->space = space;
 
+#ifdef CHANGED
+    space->AddThread(currentThread);
+#endif // CHANGED
+
     delete executable; // close file
 
     space->InitRegisters(); // set the initial register values
     space->RestoreState();  // load page table register
+
+#ifdef CHANGED
+    processCountMutex->P();
+    processCount++;
+    processCountMutex->V();
+#endif // CHANGED
 
     machine->DumpMem("memory.svg");
     machine->Run();                                  // jump to the user progam

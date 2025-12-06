@@ -15,8 +15,11 @@
 #ifdef CHANGED
 #ifdef USER_PROGRAM
 ConsoleDriver *consoledriver;
+PageProvider *pageProvider;
+int processCount;
+Semaphore *processCountMutex;
 #endif
-#endif
+#endif //CHANGED
 
 // This defines *all* of the global data structures used by Nachos.
 // These are all initialized and de-allocated by this file.
@@ -183,6 +186,14 @@ void Initialize(int argc, char **argv)
 #ifdef USER_PROGRAM
     machine = new Machine(debugUserProg); // this must come first
 #endif
+#ifdef CHANGED
+#ifdef USER_PROGRAM
+    pageProvider = new PageProvider();
+
+    processCount = 0;
+    processCountMutex = new Semaphore("process count mutex", 1);
+#endif
+#endif // CHANGED
 
 #ifdef FILESYS
     synchDisk = new SynchDisk("DISK");
@@ -233,6 +244,8 @@ void Cleanup()
     if (machine)
     {
 #ifdef CHANGED
+        delete pageProvider;
+        pageProvider = NULL;
         delete consoledriver;
 #endif // CHANGED
         delete machine;
