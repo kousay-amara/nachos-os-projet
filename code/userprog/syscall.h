@@ -42,6 +42,7 @@
 
 #define SC_ThreadCreate 18
 #define SC_ThreadExit 19
+#define SC_ForkExec 20
 #endif // CHANGED
 
 #ifdef IN_USER_MODE

@@ -26,6 +26,7 @@
 #include "syscall.h"
 #ifdef CHANGED
 #include "userthread.h"
+#include "userproc.h"
 #endif // CHANGED
 static const unsigned Buf_size = 32;
 
