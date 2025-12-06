@@ -177,6 +177,14 @@ void ExceptionHandler(ExceptionType which)
       do_ThreadExit();
       break;
     }
+    case SC_ForkExec: 
+    {
+      DEBUG('s', "ForkExec\n");
+      int filenameAddr = machine->ReadRegister(4);
+      int res = do_ForkExec(filenameAddr);
+      machine->WriteRegister(2, res);
+      break;
+    }
 #endif // CHANGED
 
     default:

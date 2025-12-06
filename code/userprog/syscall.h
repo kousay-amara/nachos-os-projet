@@ -147,6 +147,8 @@ void GetInt(int *n);
 
 int ThreadCreate(void f(void *arg), void *arg);
 void ThreadExit(void);
+
+int ForkExec(const char *s);
 #endif // CHANGED
 
 #endif // IN_USER_MODE
