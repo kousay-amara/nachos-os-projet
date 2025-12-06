@@ -42,6 +42,12 @@ void StartProcess(char *filename)
     space->InitRegisters(); // set the initial register values
     space->RestoreState();  // load page table register
 
+#ifdef CHANGED
+    processCountMutex->P();
+    processCount++;
+    processCountMutex->V();
+#endif // CHANGED
+
     machine->DumpMem("memory.svg");
     machine->Run();                                  // jump to the user progam
     ASSERT_MSG(FALSE, "Machine->Run returned???\n"); // machine->Run never returns;

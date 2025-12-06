@@ -21,6 +21,10 @@ int do_ForkExec(int filenameAddr) {
 
     Thread *t = new Thread("Forked Process");
     t->space = space;
+    
+    processCountMutex->P();
+    processCount++;
+    processCountMutex->V();
 
     t->Start(StartUserProg, NULL);
     

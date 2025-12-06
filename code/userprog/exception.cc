@@ -90,8 +90,18 @@ void ExceptionHandler(ExceptionType which)
     {
       DEBUG('s', "Exit\n");
       int status = machine->ReadRegister(4);
-      DEBUG('s', "Shutdown, initiated by %d\n", status);
-      interrupt->Powerdown();
+      DEBUG('s', "Process %s shutdown with status %d\n", currentThread->getName(), status);
+      processCountMutex->P();
+      processCount--;
+      bool lastProcess = (processCount == 0);
+      processCountMutex->V();
+      if (lastProcess) {
+        DEBUG('s', "Last process exiting. Shutdown machine.\n");
+        interrupt->Powerdown();
+      } else {
+        DEBUG('s', "Process exiting but others are still running.\n");
+        currentThread->Finish(); 
+      }
       break;
     }
     case SC_PutChar:

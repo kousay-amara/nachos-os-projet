@@ -16,6 +16,8 @@
 #ifdef USER_PROGRAM
 ConsoleDriver *consoledriver;
 PageProvider *pageProvider;
+int processCount;
+Semaphore *processCountMutex;
 #endif
 #endif //CHANGED
 
@@ -187,6 +189,9 @@ void Initialize(int argc, char **argv)
 #ifdef CHANGED
 #ifdef USER_PROGRAM
     pageProvider = new PageProvider();
+
+    processCount = 0;
+    processCountMutex = new Semaphore("process count mutex", 1);
 #endif
 #endif // CHANGED
 

@@ -25,6 +25,9 @@
 extern ConsoleDriver *consoledriver;
 #include "pageprovider.h"
 extern PageProvider *pageProvider;
+#include "synch.h"
+extern int processCount;
+extern Semaphore *processCountMutex;
 #endif
 #endif // CHANGED
 
