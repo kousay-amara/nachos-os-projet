@@ -39,31 +39,36 @@ ConsoleDriver::~ConsoleDriver()
 void ConsoleDriver::PutChar(int ch)
 {
     consoleMutex->P();
+    lockOwner = currentThread;
     console->TX(ch);
     writeDone->P(); // wait for write to finish
+    lockOwner = NULL;
     consoleMutex->V();
 }
 
 int ConsoleDriver::GetChar()
 {
     consoleMutex->P();
+    lockOwner = currentThread;
     readAvail->P();       // wait for character to arrive
     int ch = console->RX();
+    lockOwner = NULL;   
     consoleMutex->V();
     return ch;
 }
 
 void ConsoleDriver::PutString(const char *s)
 {
-    if (s==NULL){
-        return;
-    }
+    if (s==NULL) return;
+
     consoleMutex->P();
+    lockOwner = currentThread;
     while (*s != '\0')
     {
         console->TX(*s++);
         writeDone->P(); // wait for write to finish
     }
+    lockOwner = NULL;
     consoleMutex->V();
     DEBUG('s', "PutSting OK\n");
 }
@@ -125,6 +130,15 @@ unsigned copyStringFromMachine(int from, char *to, unsigned size)
     }
     DEBUG('s', "copyStringFromMachine OK\n");
     return length;
+}
+
+void ConsoleDriver::ReleaseLock(Thread *t)
+{
+    if (lockOwner == t) {
+        DEBUG('s', "Thread %s killed, release console lock\n", t->getName());
+        lockOwner = NULL;
+        consoleMutex->V();
+    }
 }
 
 #endif // CHANGED

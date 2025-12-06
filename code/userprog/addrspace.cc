@@ -122,7 +122,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     // check we're not trying to run anything too big
 #ifdef CHANGED
     ASSERT(pageProvider != NULL);
-    if (numPages > pageProvider->NumAvailPage())
+    if ((int)numPages > pageProvider->NumAvailPage())
         throw std::bad_alloc();
 #endif // CHANGED
 
@@ -178,6 +178,9 @@ AddrSpace::AddrSpace(OpenFile *executable)
     stackBitmap = new BitMap(numStackSlots);
     stackBitmap->Mark(0);
     machine->DumpMem("addrspace.svg");
+
+    threadList = new List();
+    threadListLock = new Semaphore("thread list lock", 1);
 #endif // CHANGED
 
     AddrSpaceList.Append(this);
@@ -200,6 +203,8 @@ AddrSpace::~AddrSpace()
     for (unsigned int i = 0; i < numPages; i++) {
         pageProvider->ReleasePage(pageTable[i].physicalPage);
     }
+    delete threadList;
+    delete threadListLock;
     #endif // CHANGED
     delete[] pageTable;
     pageTable = NULL;
@@ -403,5 +408,32 @@ void AddrSpace::FreeUserStack(int stackAddr) {
         stackBitmap->Clear(slot);
         DEBUG('a', "Freed stack slot %d (was at 0x%x)\n", slot, stackAddr);
     }
+}
+
+void AddrSpace::AddThread(Thread *t) {
+    threadListLock->P();
+    threadList->Append(t);
+    threadListLock->V();
+}
+
+void AddrSpace::RemoveThread(Thread *t) {
+    threadListLock->P();
+    threadList->Remove(t);
+    threadListLock->V();
+}
+
+static void CheckAndRelease(void *item)
+{
+    Thread *t = (Thread *)item;
+    if (consoledriver != NULL) {
+        consoledriver->ReleaseLock(t);
+    }
+}
+
+void AddrSpace::ClearConsoleLocks()
+{
+    threadListLock->P();
+    threadList->Mapcar((VoidFunctionPtr)CheckAndRelease);
+    threadListLock->V();
 }
 #endif // CHANGED

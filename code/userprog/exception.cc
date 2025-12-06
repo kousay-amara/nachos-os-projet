@@ -70,6 +70,14 @@ UpdatePC()
 
 void ExceptionHandler(ExceptionType which)
 {
+#ifdef CHANGED
+  if (currentThread->space == NULL) {
+        DEBUG('s', "Thread zombie detected, shutdown.\n");
+        currentThread->Finish();
+        return;
+  }
+#endif // CHANGED
+  
   int type = machine->ReadRegister(2);
   int address = machine->ReadRegister(BadVAddrReg);
 
@@ -95,12 +103,17 @@ void ExceptionHandler(ExceptionType which)
       processCount--;
       bool lastProcess = (processCount == 0);
       processCountMutex->V();
+
       if (lastProcess) {
         DEBUG('s', "Last process exiting. Shutdown machine.\n");
         interrupt->Powerdown();
       } else {
         DEBUG('s', "Process exiting but others are still running.\n");
-        currentThread->Finish(); 
+        AddrSpace *space = currentThread->space;
+        space->ClearConsoleLocks();
+        delete space;
+        currentThread->space = NULL;
+        currentThread->Finish();
       }
       break;
     }

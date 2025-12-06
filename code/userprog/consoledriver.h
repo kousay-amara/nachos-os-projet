@@ -19,9 +19,12 @@ public:
     void PutString(const char *s);  // Behaves like fputs(3S)
     void GetString(char *s, int n); // Behaves like fgets(3S)
 
+    void ReleaseLock(Thread *t); // R3_P2_6
+
 private:
     Console *console;
     Semaphore *consoleMutex;
+    Thread *lockOwner;
 };
 
 unsigned copyStringToMachine(int to, const char *from, unsigned size);

@@ -18,16 +18,21 @@ int do_ThreadCreate(int f, int arg) {
     farg[1] = arg;
     farg[2] = stackAddr;
     
-    Thread *newthread = new Thread("newThread");
-    if (newthread == NULL) {
+    Thread *newThread = new Thread("newThread");
+    if (newThread == NULL) {
         currentThread->space->FreeUserStack(stackAddr);
         DEBUG('t', "Thread creation failed: kernel thread allocation\n");
         delete[] farg;
         return -1;
     }
-    newthread->space = currentThread->space;
+    newThread->space = currentThread->space;
+
+#ifdef CHANGED
+    newThread->space->AddThread(newThread);
+#endif // CHANGED
+
     currentThread->space->IncrementThreadCount();
-    newthread->Start(StartUserThread, farg);
+    newThread->Start(StartUserThread, farg);
     return 0;
 }
 
@@ -65,6 +70,7 @@ void do_ThreadExit() {
             return;
         }
     }
+    currentThread->space->RemoveThread(currentThread);
     currentThread->Finish();
 }
 

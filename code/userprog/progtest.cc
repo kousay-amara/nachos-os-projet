@@ -37,6 +37,10 @@ void StartProcess(char *filename)
     space = new AddrSpace(executable);
     currentThread->space = space;
 
+#ifdef CHANGED
+    space->AddThread(currentThread);
+#endif // CHANGED
+
     delete executable; // close file
 
     space->InitRegisters(); // set the initial register values

@@ -21,6 +21,7 @@
 
 #ifdef CHANGED
 class Semaphore;
+class Thread;
 #include "bitmap.h"
 #define UserStacksAreaSize 4096
 #define STACK_SLOT_SIZE 256
@@ -51,6 +52,9 @@ public:
   void IncrementThreadCount();
   void DecrementThreadCount();
   int GetThreadCount();
+  void AddThread(Thread *t);
+  void RemoveThread(Thread *t);
+  void ClearConsoleLocks();
 #endif // CHANGED
 
 private:
@@ -62,6 +66,8 @@ private:
   int threadCount;
   Semaphore *threadCountLock;  // Sémaphore pour protéger le compteur
   BitMap *stackBitmap;
+  List *threadList;            // Liste des threads
+  Semaphore *threadListLock;   // Sémaphore pour protéger la liste des threads
   #endif // CHANGED
 };
 
