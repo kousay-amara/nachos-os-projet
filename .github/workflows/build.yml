@@ -1,0 +1,20 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [threads, userprog]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build code/${{ matrix.target }}
+        run: |
+          cd code/${{ matrix.target }}
+          make
